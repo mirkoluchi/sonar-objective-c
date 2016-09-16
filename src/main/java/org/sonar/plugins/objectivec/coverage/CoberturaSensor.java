@@ -56,7 +56,7 @@ public final class CoberturaSensor implements Sensor {
 
     public boolean shouldExecuteOnProject(final Project project) {
 
-        return project.isRoot() && fileSystem.languages().contains(ObjectiveC.KEY);
+        return fileSystem.languages().contains(ObjectiveC.KEY);
     }
 
     public void analyse(final Project project, final SensorContext context) {

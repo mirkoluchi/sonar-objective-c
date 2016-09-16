@@ -28,6 +28,7 @@ import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.measures.CoverageMeasuresBuilder;
 import org.sonar.api.utils.StaxParser;
@@ -35,14 +36,16 @@ import org.sonar.api.utils.StaxParser;
 final class CoberturaParser {
     public Map<String, CoverageMeasuresBuilder> parseReport(final File xmlFile) {
         Map<String, CoverageMeasuresBuilder> result = null;
+        InputStream reportStream = null; 
         try {
-            final InputStream reportStream = new FileInputStream(xmlFile);
+            reportStream = new FileInputStream(xmlFile);
             result = parseReport(reportStream);
-            reportStream.close();
         } catch (final IOException e) {
             LoggerFactory.getLogger(getClass()).error(
                     "Error processing file named {}", xmlFile, e);
             result = new HashMap<String, CoverageMeasuresBuilder>();
+        } finally {
+            IOUtils.closeQuietly(reportStream);
         }
         return result;
     }
