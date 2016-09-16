@@ -19,10 +19,18 @@
  */
 package org.sonar.plugins.objectivec.tests;
 
-import com.google.common.collect.ImmutableList;
-import com.sun.swing.internal.plaf.metal.resources.metal_sv;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.transform.TransformerException;
+
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.tools.ant.DirectoryScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.SensorContext;
@@ -42,12 +50,7 @@ import org.sonar.plugins.surefire.TestCaseDetails;
 import org.sonar.plugins.surefire.TestSuiteParser;
 import org.sonar.plugins.surefire.TestSuiteReport;
 
-import javax.xml.transform.TransformerException;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.google.common.collect.ImmutableList;
 
 /**
  * Created by gillesgrousset on 06/01/15.
@@ -68,9 +71,9 @@ public class SurefireParser {
         this.context = context;
     }
 
-    public void collect(File reportsDir) {
+    public void collect(String reportPath) {
 
-        File[] xmlFiles = getReports(reportsDir);
+        File[] xmlFiles = getReports(reportPath);
 
         if (xmlFiles.length == 0) {
             insertZeroWhenNoReports(project, context);
@@ -79,17 +82,26 @@ public class SurefireParser {
         }
     }
 
-    private File[] getReports(File dir) {
-        if (dir == null || !dir.isDirectory() || !dir.exists()) {
-            return new File[0];
+    private File[] getReports(String reportPath) {
+        // Search matching report directories
+        DirectoryScanner scanner = new DirectoryScanner();
+        scanner.setIncludes(new String[] { reportPath });
+        scanner.setBasedir(this.fileSystem.baseDir());
+        scanner.scan();
+        String[] includedDirs = scanner.getIncludedDirectories();
+        
+        // Collect all report files in all matching directories
+        List<File> reportFiles = new ArrayList<File>();
+        for(String includedDir : includedDirs) {
+            File dir = new File(this.fileSystem.baseDir(), includedDir);
+            File[] reportsInDir = getReportsInDir(dir);
+            reportFiles.addAll(Arrays.asList(reportsInDir));
         }
-
-        File[] list = dir.listFiles(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.startsWith("TEST") && name.endsWith(".xml");
-            }
-        });
-
+        
+        return reportFiles.toArray(new File[reportFiles.size()]);
+    }
+    
+    private File[] getReportsInDir(File dir){        
         return dir.listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.startsWith("TEST") && name.endsWith(".xml");

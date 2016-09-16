@@ -19,6 +19,8 @@
  */
 package org.sonar.plugins.objectivec.tests;
 
+import java.io.File;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.CoverageExtension;
@@ -30,8 +32,6 @@ import org.sonar.api.component.ResourcePerspectives;
 import org.sonar.api.config.Settings;
 import org.sonar.api.resources.Project;
 import org.sonar.plugins.objectivec.core.ObjectiveC;
-
-import java.io.File;
 
 public class SurefireSensor implements Sensor {
 
@@ -55,8 +55,7 @@ public class SurefireSensor implements Sensor {
     }
 
     public boolean shouldExecuteOnProject(Project project) {
-
-        return project.isRoot() && fileSystem.hasFiles(fileSystem.predicates().hasLanguage(ObjectiveC.KEY));
+        return fileSystem.languages().contains(ObjectiveC.KEY);
     }
 
     public void analyse(Project project, SensorContext context) {
@@ -77,13 +76,13 @@ public class SurefireSensor implements Sensor {
         So the implementation here reaches into the project properties and pulls the path out by itself.
      */
 
-        collect(project, context, new File(reportPath()));
+        collect(project, context, reportPath());
     }
 
-    protected void collect(Project project, SensorContext context, File reportsDir) {
-        LOG.info("parsing {}", reportsDir);
+    protected void collect(Project project, SensorContext context, String reportPath) {
+        LOG.info("parsing {}", reportPath);
         SurefireParser parser = new SurefireParser(project, fileSystem, resourcePerspectives, context);
-        parser.collect(reportsDir);
+        parser.collect(reportPath);
     }
 
     @Override
