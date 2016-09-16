@@ -28,6 +28,7 @@ import java.util.Collection;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.component.ResourcePerspectives;
@@ -49,12 +50,14 @@ final class OCLintParser {
 
     public void parseReport(final File file) {
 
+        InputStream reportStream = null;
         try {
-            final InputStream reportStream = new FileInputStream(file);
+            reportStream = new FileInputStream(file);
             parseReport(reportStream);
-            reportStream.close();
         } catch (final IOException e) {
             LoggerFactory.getLogger(getClass()).error("Error processing file named {}", file, e);
+        } finally {            
+            IOUtils.closeQuietly(reportStream);
         }
 
     }

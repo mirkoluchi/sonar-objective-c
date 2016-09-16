@@ -50,7 +50,7 @@ public final class OCLintSensor implements Sensor {
 
     public boolean shouldExecuteOnProject(final Project project) {
 
-        return project.isRoot() && fileSystem.languages().contains(ObjectiveC.KEY);
+        return fileSystem.languages().contains(ObjectiveC.KEY);
 
     }
 
@@ -73,7 +73,8 @@ public final class OCLintSensor implements Sensor {
 
         for(String filename : files) {
             LoggerFactory.getLogger(getClass()).info("Processing OCLint report {}", filename);
-            parser.parseReport(new File(filename));
+            File reportFile = new File(baseDir, filename);
+            parser.parseReport(reportFile);
         }
     }
 
