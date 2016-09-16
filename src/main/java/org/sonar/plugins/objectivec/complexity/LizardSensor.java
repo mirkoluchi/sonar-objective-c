@@ -64,7 +64,7 @@ public class LizardSensor implements Sensor {
      */
     @Override
     public boolean shouldExecuteOnProject(Project project) {
-        return project.isRoot() && fileSystem.languages().contains(ObjectiveC.KEY);
+        return fileSystem.languages().contains(ObjectiveC.KEY);
     }
 
     /**
@@ -87,21 +87,24 @@ public class LizardSensor implements Sensor {
      * @return Map containing as key the name of the file and as value a list containing the measures for that file
      */
     private Map<String, List<Measure>> parseReportsIn(final String baseDir, LizardReportParser parser) {
-        final StringBuilder reportFileName = new StringBuilder(baseDir);
-        reportFileName.append("/").append(reportPath());
-        LOGGER.info("Processing complexity report ");
-        return parser.parseReport(new File(reportFileName.toString()));
+        File reportFile = reportFile();
+        LOGGER.info("Processing complexity report: " + reportFile);
+        return parser.parseReport(reportFile);
     }
 
     /**
      *
      * @return the default report path or the one specified in the sonar-project.properties
      */
-    private String reportPath() {
+    private File reportFile() {
         String reportPath = conf.getString(REPORT_PATH_KEY);
         if (reportPath == null) {
             reportPath = DEFAULT_REPORT_PATH;
         }
-        return reportPath;
+        File reportFile = new File(reportPath);
+        if (!reportFile.isAbsolute()) {
+            reportFile = new File(fileSystem.baseDir(), reportPath);
+        }
+        return reportFile;
     }
 }
