@@ -37,6 +37,7 @@ public class SurefireSensor implements Sensor {
 
     private static final Logger LOG = LoggerFactory.getLogger(SurefireSensor.class);
     public static final String REPORT_PATH_KEY = "sonar.junit.reportsPath";
+    public static final String DISABLED_KEY = "sonar.junit.disabled";
     public static final String DEFAULT_REPORT_PATH = "sonar-reports/";
 
     private final Settings settings;
@@ -55,7 +56,8 @@ public class SurefireSensor implements Sensor {
     }
 
     public boolean shouldExecuteOnProject(Project project) {
-        return fileSystem.languages().contains(ObjectiveC.KEY);
+        boolean disabled = settings.getBoolean(DISABLED_KEY);
+        return !disabled && fileSystem.languages().contains(ObjectiveC.KEY);
     }
 
     public void analyse(Project project, SensorContext context) {
